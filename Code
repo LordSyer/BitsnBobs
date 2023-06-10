@@ -1,0 +1,76 @@
+// ==UserScript==
+// @name         Torn: Buy Items from BitsNBobs
+// @namespace    torn.buy_items
+// @version      0.4.0
+// @description  Buy items from the shop
+// @author       KingDragon93 2917134
+// @match        https://www.torn.com/shops.php?step=bitsnbobs*
+// @grant        none, not sure this is allowed 
+// ==/UserScript==
+
+const items = [
+  { id: 186, name: 'Sheep' },
+  { id: 215, name: 'Kitten' },
+  { id: 187, name: 'Bear' },
+  { id: 64, name: 'Cuban cigars' },
+  { id: 181, name: 'Champagne' },
+  { id: 180, name: 'Beer' },
+  { id: 97, name: 'Bunch of Flowers' },
+  { id: 183, name: 'Single Rose' },
+  { id: 129, name: 'Dozen Roses' },
+  { id: 184, name: 'Bunch of Black Roses' },
+  { id: 403, name: 'Tissue' },
+  { id: 394, name: 'Brick' },
+  { id: 182, name: 'Rope Soap' },
+  { id: 560, name: 'Fruitcake' },
+  { id: 401, name: 'Lead Pipe' }
+];
+
+function addButton() {
+  if ($('div.content-title > h4').size() > 0 && $('#buyItemBtn').size() < 1) {
+    const selectOptions = items
+      .map(item => `<option value="${item.id}">${item.name}</option>`)
+      .join('');
+
+    const button = `<div>
+                      <select id="itemSelect" style="margin-right: 10px;">
+                        ${selectOptions}
+                      </select>
+                      <input id="quantityInput" type="number" min="1" value="1" style="width: 50px; margin-right: 10px;">
+                      <button id="buyItemBtn" style="color: var(--default-blue-color); cursor: pointer;">Buy Item</button>
+                      <span id="buyItemResult" style="font-size: 12px; font-weight: 100;"></span>
+                    </div>`;
+
+    $('div.content-title > h4').append(button);
+
+    $('#buyItemBtn').on('click', async () => {
+      const itemId = $('#itemSelect').val();
+      const quantity = $('#quantityInput').val();
+
+      $('#buyItemResult').text('');
+      await getAction({
+        type: 'post',
+        action: 'shops.php',
+        data: {
+          step: 'buyShopItem',
+          ID: itemId,
+          amount: quantity
+        },
+        success: (str) => {
+          try {
+            const msg = JSON.parse(str);
+            $('#buyItemResult').html(msg.text).css('color', msg.success ? 'green' : 'red');
+          } catch (e) {
+            console.log(e);
+          }
+        }
+      });
+    });
+  }
+}
+
+(function() {
+  'use strict';
+
+  addButton();
+})();
